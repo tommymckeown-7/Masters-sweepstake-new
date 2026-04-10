@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masters 2026 — Office Sweepstake</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green-deep:  #1a2e1a;
+  --gold:        #c9a84c;
+  --gold-light:  #e8d08a;
+  --cream:       #f5f0e8;
+  --cream-dark:  #e8e0d0;
+  --text-muted:  #a8b8a8;
+  --red:         #e05c5c;
+  --green-score: #6acc8a;
+  --card-bg:     rgba(44,74,44,0.45);
+  --card-border: rgba(201,168,76,0.2);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--green-deep);
+  color: var(--cream);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(61,107,61,0.5) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(26,46,26,0.8) 0%, transparent 60%);
+}
+
+header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.flag-line {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 0.75rem;
+}
+.flag-line::before, .flag-line::after {
+  content: ''; height: 1px; width: 50px;
+  background: var(--gold); opacity: 0.5;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-weight: 600; color: var(--gold-light); line-height: 1.1;
+}
+.subtitle {
+  font-size: 0.8rem; color: var(--text-muted);
+  margin-top: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.points-key {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 6px; padding: 1rem 1rem 0; max-width: 680px; margin: 0 auto;
+}
+.pk {
+  font-size: 0.72rem; padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--card-border); color: var(--gold-light);
+  background: rgba(201,168,76,0.08); white-space: nowrap;
+}
+
+.tabs {
+  display: flex; max-width: 900px; margin: 0 auto;
+  padding: 0 1rem; border-bottom: 1px solid var(--card-border);
+}
+.tab {
+  padding: 12px 20px; font-size: 0.85rem; font-weight: 500;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+.tab:hover:not(.active) { color: var(--cream); }
+
+.controls {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1.5rem; max-width: 900px; margin: 0 auto;
+}
+.last-updated { font-size: 0.75rem; color: var(--text-muted); }
+.refresh-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500;
+  padding: 5px 14px; border-radius: 20px; border: 1px solid var(--gold);
+  background: transparent; color: var(--gold); cursor: pointer; transition: all 0.2s;
+}
+.refresh-btn:hover { background: rgba(201,168,76,0.12); }
+.refresh-btn:disabled { opacity: 0.4; cursor: default; }
+
+.panel { display: none; max-width: 900px; margin: 0 auto; padding: 0 1rem 3rem; }
+.panel.active { display: block; }
+
+/* Sweepstake cards */
+.card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+  transition: border-color 0.2s; animation: fadeUp 0.4s ease both;
+}
+.card:hover { border-color: rgba(201,168,76,0.4); }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.card-header {
+  display: flex; align-items: center;
+  padding: 14px 18px; gap: 14px; cursor: pointer; user-select: none;
+}
+.rank {
+  font-family: 'Playfair Display', serif; font-size: 1.25rem;
+  font-weight: 600; color: var(--gold); width: 34px; text-align: center; flex-shrink: 0;
+}
+.rank.r1 { color: #ffd700; }
+.rank.r2 { color: #c0c0c0; }
+.rank.r3 { color: #cd7f32; }
+.p-name { font-size: 1rem; font-weight: 500; flex: 1; }
+.total-pts {
+  font-family: 'Playfair Display', serif; font-size: 1.25rem;
+  font-weight: 600; color: var(--gold-light);
+}
+.pts-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.chevron { color: var(--text-muted); font-size: 0.75rem; transition: transform 0.2s; margin-left: 6px; }
+.card.open .chevron { transform: rotate(180deg); }
+
+.golfers { display: none; border-top: 1px solid var(--card-border); }
+.card.open .golfers { display: block; }
+.golfer-row {
+  display: flex; align-items: center;
+  padding: 9px 18px 9px 66px; gap: 10px;
+  border-bottom: 1px solid rgba(201,168,76,0.06);
+}
+.golfer-row:last-child { border-bottom: none; }
+.g-name { flex: 1; font-size: 0.87rem; color: var(--cream-dark); }
+.g-pos  { font-size: 0.8rem; font-weight: 500; width: 36px; text-align: center; color: var(--text-muted); }
+.g-score { font-size: 0.88rem; font-weight: 500; width: 38px; text-align: right; }
+.under { color: var(--green-score); }
+.over  { color: var(--red); }
+.even  { color: var(--text-muted); }
+.g-thru { font-size: 0.74rem; color: var(--text-muted); width: 54px; text-align: right; }
+.g-pts  { font-size: 0.76rem; font-weight: 500; width: 44px; text-align: right; color: var(--gold); }
+.g-pts.zero { color: var(--text-muted); }
+.tag-cut {
+  font-size: 0.64rem; padding: 2px 6px; border-radius: 8px;
+  background: rgba(224,92,92,0.15); color: var(--red); border: 1px solid rgba(224,92,92,0.3);
+}
+.tag-wd {
+  font-size: 0.64rem; padding: 2px 6px; border-radius: 8px;
+  background: rgba(168,184,168,0.08); color: var(--text-muted); border: 1px solid rgba(168,184,168,0.2);
+}
+
+/* Masters leaderboard */
+.lb-table {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden;
+}
+.lb-head {
+  display: flex; padding: 10px 16px; gap: 10px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.68rem; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.lb-row {
+  display: flex; align-items: center; padding: 10px 16px; gap: 10px;
+  border-bottom: 1px solid rgba(201,168,76,0.06);
+  animation: fadeUp 0.3s ease both;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row.in-sweep { background: rgba(201,168,76,0.07); }
+.col-pos  { width: 38px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
+.col-name { flex: 1; font-size: 0.88rem; }
+.sweep-tag {
+  font-size: 0.62rem; padding: 1px 6px; border-radius: 8px; margin-left: 6px;
+  background: rgba(201,168,76,0.18); color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.3); vertical-align: middle;
+}
+.col-score { width: 42px; text-align: right; font-size: 0.88rem; font-weight: 500; }
+.col-thru  { width: 58px; text-align: right; font-size: 0.75rem; color: var(--text-muted); }
+.gold1 { color: #ffd700; font-weight: 600; }
+.gold2 { color: #c0c0c0; }
+.gold3 { color: #cd7f32; }
+
+.state-msg {
+  text-align: center; padding: 3rem 1rem;
+  color: var(--text-muted); font-size: 0.88rem; line-height: 2;
+}
+.spinner {
+  width: 26px; height: 26px; border: 2px solid rgba(201,168,76,0.15);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer {
+  text-align: center; padding: 1rem; font-size: 0.72rem;
+  color: var(--text-muted); border-top: 1px solid var(--card-border); opacity: 0.6;
+}
+
+@media (max-width: 520px) {
+  .golfer-row { padding-left: 18px; }
+  .g-thru, .col-thru { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="flag-line"><span>⛳</span></div>
+  <h1>Masters 2026</h1>
+  <p class="subtitle">Augusta National &nbsp;·&nbsp; April 10–13 &nbsp;·&nbsp; Office Sweepstake</p>
+  <div class="points-key">
+    <span class="pk">🏆 Win = 30</span>
+    <span class="pk">Top 5 = 15</span>
+    <span class="pk">Top 10 = 8</span>
+    <span class="pk">Top 20 = 4</span>
+    <span class="pk">Top 30 = 2</span>
+    <span class="pk">Made Cut = 1</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('sweep')">🏆 Sweepstake</div>
+  <div class="tab" onclick="switchTab('lb')">📋 Masters Leaderboard</div>
+</div>
+
+<div class="controls">
+  <span class="last-updated" id="lastUpdated">Loading scores…</span>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadScores()">↻ Refresh</button>
+</div>
+
+<div class="panel active" id="panel-sweep">
+  <div class="state-msg"><div class="spinner"></div>Fetching live scores…</div>
+</div>
+<div class="panel" id="panel-lb">
+  <div class="state-msg"><div class="spinner"></div>Fetching live scores…</div>
+</div>
+
+<footer>Live scores via masters.com · Auto-refreshes every 3 min · Gold-tinted rows = in your sweepstake</footer>
+
+<script>
+const DRAW = [
+  { name:'Kevin',  golfers:['Rory McIlroy','Chris Gotterup','Sam Burns','Ben Griffin'] },
+  { name:'Louis',  golfers:['Xander Schauffele','Brooks Koepka','Corey Conners','Gary Woodland'] },
+  { name:'Joey',   golfers:['Cameron Young','Russell Henley','Harris English','Sergio Garcia'] },
+  { name:'Simon',  golfers:['Ludvig Åberg','Jake Knapp','Patrick Cantlay','Max Homa'] },
+  { name:'Matty',  golfers:['Tommy Fleetwood','Jordan Spieth','Rasmus Højgaard','Sam Stevens'] },
+  { name:'Dan',    golfers:['Justin Rose','Shane Lowry','Cameron Smith','Sungjae Im'] },
+  { name:'Aidan',  golfers:['Bryson DeChambeau','Nicolai Højgaard','Tyrrell Hatton','Alex Noren'] },
+  { name:'Tommy',  golfers:['Scottie Scheffler','Maverick McNealy','Sepp Straka','Ryan Gerard'] },
+  { name:'Alison', golfers:['Hideki Matsuyama','Collin Morikawa','Jason Day','Keegan Bradley'] },
+  { name:'Niall',  golfers:['Matt Fitzpatrick','Patrick Reed','J.J. Spaun','Marco Penge'] },
+  { name:'Jack',   golfers:['Min Woo Lee','Si Woo Kim','Adam Scott','Harry Hall'] },
+  { name:'Connor', golfers:['Robert MacIntyre','Akshay Bhatia','Justin Thomas','Kurt Kitayama'] },
+  { name:'Rich',   golfers:['Jon Rahm','Viktor Hovland','Jacob Bridgeman','Daniel Berger'] },
+];
+
+const ALL_SWEEP = new Set(DRAW.flatMap(p => p.golfers).map(norm));
+const OWNER = {};
+DRAW.forEach(p => p.golfers.forEach(g => { OWNER[norm(g)] = p.name; }));
+
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+
+function getPoints(posNum, isCut, isWD) {
+  if (isCut || isWD || posNum <= 0) return 0;
+  if (posNum === 1)  return 30;
+  if (posNum <= 5)   return 15;
+  if (posNum <= 10)  return 8;
+  if (posNum <= 20)  return 4;
+  if (posNum <= 30)  return 2;
+  return 1;
+}
+
+function fmtScore(n) {
+  if (n === undefined || n === null || n === 'E') return 'E';
+  const v = typeof n === 'number' ? n : parseInt(n);
+  if (isNaN(v) || v === 0) return 'E';
+  return v > 0 ? '+'+v : ''+v;
+}
+
+function sCls(n) {
+  const v = typeof n === 'number' ? n : parseInt(n);
+  if (isNaN(v) || v === 0) return 'even';
+  return v < 0 ? 'under' : 'over';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active', (tab==='sweep'&&i===0)||(tab==='lb'&&i===1)));
+  document.getElementById('panel-sweep').classList.toggle('active', tab==='sweep');
+  document.getElementById('panel-lb').classList.toggle('active', tab==='lb');
+}
+
+function toggleCard(el) { el.classList.toggle('open'); }
+
+async function loadScores() {
+  const btn = document.getElementById('refreshBtn');
+  const upd = document.getElementById('lastUpdated');
+  btn.disabled = true; btn.textContent = '↻ Updating…';
+
+  const PROXY       = 'https://corsproxy.io/?';
+  const MASTERS_URL = 'https://www.masters.com/en_US/scores/feeds/2026/scores.json';
+  const ESPN_URL    = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
+
+  let allPlayers = [];
+
+  // 1 — masters.com
+  try {
+    const res  = await fetch(PROXY + encodeURIComponent(MASTERS_URL));
+    const data = await res.json();
+    const list = data?.data?.player || [];
+    if (list.length) {
+      allPlayers = list.map(p => {
+        const name   = ((p.first_name||'')+' '+(p.last_name||'')).trim();
+        const posRaw = String(p.pos || '');
+        const posNum = parseInt(posRaw.replace(/\D/g,'')) || 0;
+        const isCut  = /^CUT$/i.test(posRaw) || p.status === 'C';
+        const isWD   = /^WD$/i.test(posRaw)  || p.status === 'W';
+        const rawScore = p.topar;
+        const score  = (rawScore === 'E' || rawScore === undefined) ? 0 : (parseInt(rawScore) || 0);
+        const thru   = p.thru || '';
+        return { name, score, posNum, posRaw, thru, isCut, isWD };
+      });
+    }
+  } catch(_) {}
+
+  // 2 — ESPN (direct then proxied)
+  if (!allPlayers.length) {
+    for (const url of [ESPN_URL, PROXY + encodeURIComponent(ESPN_URL)]) {
+      try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        const events = data.events || [];
+        const ev = events.find(e => e.name?.toLowerCase().includes('master'))
+                || events.find(e => (e.competitions?.[0]?.competitors?.length||0) > 10);
+        if (!ev) continue;
+        const comps = ev.competitions?.[0]?.competitors || [];
+        if (!comps.length) continue;
+        allPlayers = comps.map(c => {
+          const name   = c.athlete?.displayName || '';
+          const st     = c.status?.type?.name || '';
+          const posRaw = c.status?.position?.displayName || '';
+          const posNum = parseInt(posRaw.replace(/\D/g,'')) || 0;
+          const isCut  = st === 'STATUS_CUT';
+          const isWD   = st === 'STATUS_WITHDRAWN';
+          const score  = parseInt(c.score) || 0;
+          const thru   = c.status?.type?.shortDetail || '';
+          return { name, score, posNum, posRaw, thru, isCut, isWD };
+        });
+        break;
+      } catch(_) {}
+    }
+  }
+
+  if (!allPlayers.length) {
+    const err = '<div class="state-msg">⚠️ Could not fetch scores.<br>Check your connection and hit refresh.</div>';
+    document.getElementById('panel-sweep').innerHTML = err;
+    document.getElementById('panel-lb').innerHTML    = err;
+    upd.textContent = 'Error — try refreshing';
+    btn.disabled = false; btn.textContent = '↻ Refresh';
+    return;
+  }
+
+  const sm = {};
+  allPlayers.forEach(p => { sm[norm(p.name)] = p; });
+
+  // ── Sweepstake tab ──
+  const participants = DRAW.map(p => {
+    let totalPts = 0;
+    const gs = p.golfers.map(g => {
+      const m   = sm[norm(g)] || null;
+      const pts = m ? getPoints(m.posNum, m.isCut, m.isWD) : 0;
+      totalPts += pts;
+      return { name:g, data:m, pts };
+    });
+    return { name:p.name, golfers:gs, totalPts };
+  }).sort((a,b) => {
+    if (b.totalPts !== a.totalPts) return b.totalPts - a.totalPts;
+    const bA = Math.min(...a.golfers.map(g => g.data?.posNum||999));
+    const bB = Math.min(...b.golfers.map(g => g.data?.posNum||999));
+    return bA - bB;
+  });
+
+  document.getElementById('panel-sweep').innerHTML = participants.map((p,i) => {
+    const r = i+1;
+    const rCls = r===1?'r1':r===2?'r2':r===3?'r3':'';
+    const rTxt = r===1?'1st':r===2?'2nd':r===3?'3rd':r+'th';
+    const rows = p.golfers.map(g => {
+      const d = g.data;
+      if (!d) return `<div class="golfer-row">
+        <span class="g-name">${g.name}</span>
+        <span class="g-pos">–</span><span class="g-score even">–</span>
+        <span class="g-thru">–</span><span class="g-pts zero">0 pts</span></div>`;
+      const pos = d.isCut ? '<span class="tag-cut">CUT</span>'
+                : d.isWD  ? '<span class="tag-wd">WD</span>'
+                : (d.posRaw||'–');
+      return `<div class="golfer-row">
+        <span class="g-name">${g.name}</span>
+        <span class="g-pos">${pos}</span>
+        <span class="g-score ${sCls(d.score)}">${fmtScore(d.score)}</span>
+        <span class="g-thru">${d.thru}</span>
+        <span class="g-pts ${g.pts?'':'zero'}">${g.pts} pts</span>
+      </div>`;
+    }).join('');
+    return `<div class="card" style="animation-delay:${i*0.05}s" onclick="toggleCard(this)">
+      <div class="card-header">
+        <div class="rank ${rCls}">${rTxt}</div>
+        <div class="p-name">${p.name}</div>
+        <div style="text-align:right">
+          <div class="total-pts">${p.totalPts}</div>
+          <div class="pts-label">pts</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="golfers">${rows}</div>
+    </div>`;
+  }).join('');
+
+  // ── Masters leaderboard tab ──
+  const sorted = [...allPlayers]
+    .filter(p => !p.isWD)
+    .sort((a,b) => {
+      if (a.isCut !== b.isCut) return a.isCut ? 1 : -1;
+      if (a.posNum !== b.posNum) return (a.posNum||999) - (b.posNum||999);
+      return a.score - b.score;
+    });
+
+  const lbRows = sorted.map((p,i) => {
+    const inSweep = ALL_SWEEP.has(norm(p.name));
+    const owner   = OWNER[norm(p.name)] || '';
+    const pCls    = p.posNum===1?'gold1':p.posNum===2?'gold2':p.posNum===3?'gold3':'';
+    const posDisp = p.isCut ? '<span class="tag-cut">CUT</span>' : (p.posRaw||'–');
+    return `<div class="lb-row ${inSweep?'in-sweep':''}" style="animation-delay:${i*0.012}s">
+      <div class="col-pos ${pCls}">${posDisp}</div>
+      <div class="col-name">${p.name}${inSweep?`<span class="sweep-tag">${owner}</span>`:''}</div>
+      <div class="col-score ${sCls(p.score)}">${fmtScore(p.score)}</div>
+      <div class="col-thru">${p.thru}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('panel-lb').innerHTML = `
+    <div class="lb-table">
+      <div class="lb-head">
+        <div class="col-pos">Pos</div>
+        <div style="flex:1">Player</div>
+        <div class="col-score">Score</div>
+        <div class="col-thru">Thru</div>
+      </div>${lbRows}
+    </div>`;
+
+  const now = new Date();
+  upd.textContent = `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  btn.disabled = false; btn.textContent = '↻ Refresh';
+}
+
+loadScores();
+setInterval(loadScores, 3 * 60 * 1000);
+</script>
+</body>
+</html>
